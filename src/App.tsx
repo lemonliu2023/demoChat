@@ -1,6 +1,10 @@
 import { DeepChat } from 'deep-chat-react';
 import XStream from './utils/xStream';
+import { useRef } from 'react';
 function App() {
+  const conversationIdRef = useRef<string | undefined>(undefined);
+  const search = new URLSearchParams(window.location.search)
+  localStorage.setItem('token', search.get('token') || ''); // Set token from URL query parameter
   return (
     <>
       <DeepChat
@@ -116,13 +120,20 @@ function App() {
           stream: true,
           handler: (body, signals) => {
             fetch('/api/agent/demoMessages', {
-              body: JSON.stringify(body),
+              body: JSON.stringify({
+                query: body.messages[0].text,
+                conversationId: conversationIdRef.current,
+              }),
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
+                Authorization: `Bearer ${localStorage.getItem('token') || ''}`,
               },
             }).then(async (res) => {
               if (res.ok === false) {
+                signals.onResponse({
+                  error: 'Error connecting to the server',
+                });
                 return;
               }
               signals.onOpen(); // stops the loading bubble
@@ -136,6 +147,7 @@ function App() {
                 }
                 if (json.answer) {
                   if (json.event === 'message') {
+                    conversationIdRef.current = json.conversation_id;
                     signals.onResponse({ text: json.answer });
                   }
                 }
