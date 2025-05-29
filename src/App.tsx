@@ -3,7 +3,7 @@ import XStream from './utils/xStream';
 import { useRef } from 'react';
 function App() {
   const conversationIdRef = useRef<string | undefined>(undefined);
-  const search = new URLSearchParams(window.location.search)
+  const search = new URLSearchParams(window.location.search);
   localStorage.setItem('token', search.get('token') || ''); // Set token from URL query parameter
   return (
     <>
@@ -32,7 +32,7 @@ function App() {
             },
             user: { bubble: { backgroundColor: '#00c82a' } },
           },
-          loading: { message: { styles: { bubble: { padding: '0.6em 0.75em 0.6em 1.3em' } } } },
+          // loading: { message: { styles: { bubble: { padding: '0.6em 0.75em 0.6em 1.3em' } } } },
         }}
         submitButtonStyles={{
           submit: {
@@ -41,6 +41,7 @@ function App() {
                 width: '0.95em',
                 height: '0.95em',
                 justifyContent: 'center',
+                alignItems: 'center',
                 display: 'flex',
                 borderRadius: '25px',
                 padding: '0.3em',
@@ -57,6 +58,13 @@ function App() {
                 },
               },
             },
+          },
+          loading: {
+            container: {
+              default: {
+                display: 'none'
+              }
+            }
           },
         }}
         textInput={{
