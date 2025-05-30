@@ -1,13 +1,36 @@
 import { DeepChat } from 'deep-chat-react';
 import XStream from './utils/xStream';
-import { useRef } from 'react';
+import { useEffect, useRef } from 'react';
 function App() {
   const conversationIdRef = useRef<string | undefined>(undefined);
   const search = new URLSearchParams(window.location.search);
-  localStorage.setItem('token', search.get('token') || ''); // Set token from URL query parameter
+  const code = search.get('code');
+  const token = search.get('token');
+
+  useEffect(() => {
+    if(token){
+      localStorage.setItem('token', token);
+    }
+    fetch('/api/weight/invite/generate-token', {
+      body: JSON.stringify({
+        inviteCode: code,
+      }),
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    }).then(async (response) => {
+      if (response.ok) {
+        const res = await response.json();
+        const { data } = res;
+        localStorage.setItem('token', data || '');
+      }
+    });
+  }, [code]);
   return (
     <>
       <DeepChat
+        // className="w-[375px] h-[667px]"
         auxiliaryStyle="
     ::-webkit-scrollbar {
      display: none;
@@ -17,7 +40,7 @@ function App() {
     }"
         style={{
           width: '100vw',
-          height: '100vh',
+          height: '90vh',
           border: 'unset',
         }}
         messageStyles={{
@@ -62,9 +85,9 @@ function App() {
           loading: {
             container: {
               default: {
-                display: 'none'
-              }
-            }
+                display: 'none',
+              },
+            },
           },
         }}
         textInput={{
@@ -127,6 +150,12 @@ function App() {
         connect={{
           stream: true,
           handler: (body, signals) => {
+            if(!localStorage.getItem('token')) {
+              signals.onResponse({
+                error: 'Please refresh the page and try again',
+              })
+              return;
+            }
             fetch('/api/agent/demoMessages', {
               body: JSON.stringify({
                 query: body.messages[0].text,
