@@ -24,6 +24,8 @@ function App() {
         const res = await response.json();
         const { data } = res;
         localStorage.setItem('token', data || '');
+      } else {
+        localStorage.removeItem('token');
       }
     });
   }, [code]);
